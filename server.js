@@ -1,5 +1,7 @@
 const express = require('express')
 const cluster = require('cluster')
+const os = require('os')
+
 cluster.schedulingPolicy = cluster.SCHED_RR
 
 const app = express()
@@ -23,9 +25,14 @@ app.get('/timer', (req, res) => {
 
 if (cluster.isMaster) {
   console.log('Master has been started...')
-  cluster.fork()
-  cluster.fork()
+
+  const NUM_WORKERS = os.cpus().length
+
+  for (let i = 0; i < NUM_WORKERS; i++) cluster.fork()
 } else {
   console.log('Worker process has started')
   app.listen(3000)
 }
+
+// round robin: load balancing
+// distributing set of tasks to a set of resources
